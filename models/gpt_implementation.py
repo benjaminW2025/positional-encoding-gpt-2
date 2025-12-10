@@ -25,3 +25,45 @@ class GPT2Model(nn.Module):
         # create the layer norm
         self.final_norm = nn.LayerNorm(d_model)
 
+        # create the final projection layer
+        self.final_proj = nn.Linear(d_model, vocab_size, bias=False)
+
+        self._init_weights()
+    
+    def _init_weights(self):
+        # explicit initialization of the weights in order to break symmetry and stablize gradients
+        for p in self.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
+
+    def forward(self, x, targets=None):
+        batch, seq_len = x.size()
+
+        # embed the input
+        embedding = self.token_embeddings(x)
+
+        # calculate positional encoding and apply dropout
+        x = self.positional_encoding(embedding)
+        x = self.dropout(x)
+
+        # apply decoder layers
+        for layers in self.layers:
+            x = layers(x)
+        
+        # apply final layer norm
+        x = self.final_norm(x)
+
+        # project into vocab space
+        logits = self.final_proj(x)
+
+        # now we calculate cross entropy loss
+        loss = None
+        if targets is not None:
+            # reshape tensor
+            loss = nn.functional.cross_entropy(
+                logits.view(-1, logits.size(-1)), 
+                targets.view(-1)
+            )
+        # return
+        return logits, loss
+
