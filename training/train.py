@@ -18,6 +18,7 @@ save_path = os.path.join(save_dir, "my_object.pkl")
 
 # define hyperparameters
 
+ACTIVATION = torch.nn.GELU()
 NUM_EPOCHS = 5
 LR = 0.0003
 BATCH_SIZE = 32
@@ -72,7 +73,7 @@ def main():
     print("Saved encoded validation set")
 
     # need to first create an instance of the model
-    model = GPT2Model(VOCAB_SIZE, N_LAYERS, D_MODEL, NUM_HEADS, D_FF, DROPOUT, device, MAX_LEN)
+    model = GPT2Model(VOCAB_SIZE, N_LAYERS, D_MODEL, NUM_HEADS, D_FF, ACTIVATION, DROPOUT, device, MAX_LEN)
     model = model.to(device)
 
     # create an instance of our dataloader
